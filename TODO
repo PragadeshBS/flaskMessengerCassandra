@@ -1,0 +1,10 @@
+TODO:
+----
+
+P0:
+ - CSRF
+ - Authentication for REST
+
+P1:
+ - Various JavaScript niceties
+ - Push notifications with websockets
