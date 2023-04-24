@@ -1,19 +1,18 @@
-import os
-import sqlite3
 from flask_cqlalchemy import CQLAlchemy
 from datetime import datetime
 import uuid
-
 from flask import Flask, jsonify, make_response, redirect, render_template, request, session, url_for
-
 import settings
+
+cassandra_node_ip = '40.87.12.12'
+cassandra_keyspace = 'test'
+
 
 app = Flask(__name__)
 app.config.from_object(settings)
-app.config['CASSANDRA_HOSTS'] = ['127.0.0.1']
-app.config['CASSANDRA_KEYSPACE'] = 'test'
+app.config['CASSANDRA_HOSTS'] = [cassandra_node_ip]
+app.config['CASSANDRA_KEYSPACE'] = cassandra_keyspace
 db = CQLAlchemy(app)
-db.sync_db()
 
 class Message(db.Model):
     # __table_name__ = 'messages'
@@ -185,23 +184,25 @@ def update_message_by_id(id):
 
 if __name__ == '__main__':
 
-    # Test whether the database exists; if not, create it and create the table
-    if not os.path.exists(app.config['DATABASE']):
-        try:
-            conn = sqlite3.connect(app.config['DATABASE'])
+    db.sync_db();
 
-            # Absolute path needed for testing environment
-            sql_path = os.path.join(app.config['APP_ROOT'], 'db_init.sql')
-            cmd = open(sql_path, 'r').read()
-            c = conn.cursor()
-            c.execute(cmd)
-            conn.commit()
-            conn.close()
-        except IOError:
-            print("Couldn't initialize the database, exiting...")
-            raise
-        except sqlite3.OperationalError:
-            print("Couldn't execute the SQL, exiting...")
-            raise
+    # Test whether the database exists; if not, create it and create the table
+    # if not os.path.exists(app.config['DATABASE']):
+    #     try:
+    #         conn = sqlite3.connect(app.config['DATABASE'])
+
+    #         # Absolute path needed for testing environment
+    #         sql_path = os.path.join(app.config['APP_ROOT'], 'db_init.sql')
+    #         cmd = open(sql_path, 'r').read()
+    #         c = conn.cursor()
+    #         c.execute(cmd)
+    #         conn.commit()
+    #         conn.close()
+    #     except IOError:
+    #         print("Couldn't initialize the database, exiting...")
+    #         raise
+    #     except sqlite3.OperationalError:
+    #         print("Couldn't execute the SQL, exiting...")
+    #         raise
 
     app.run(host='0.0.0.0')
