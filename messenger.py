@@ -3,9 +3,19 @@ from datetime import datetime
 import uuid
 from flask import Flask, jsonify, make_response, redirect, render_template, request, session, url_for
 import settings
+import requests
+from datetime import datetime
+import os
+import json
 
-cassandra_node_ip = '40.87.12.12'
+# cassandra_node_ip = '40.87.12.12'
+cassandra_node_ip = '127.0.0.1'
 cassandra_keyspace = 'test'
+hugging_face_url = 'https://api-inference.huggingface.co/models/distilbert-base-uncased-finetuned-sst-2-english'
+hugging_face_headers = {
+    'Authorization': os.getenv('HUGGING_FACE_API'),
+}
+
 
 
 app = Flask(__name__)
@@ -126,7 +136,14 @@ def admin():
 
     messages = _get_message()
     messages.reverse()
-
+    
+    data = [{'text': message['message']} for message in messages]
+    r = requests.post(url=hugging_face_url,
+                      headers=hugging_face_headers,
+                      data=json.dumps(data))
+    res = json.loads(r.text)
+    for i in range(len(messages)):
+        messages[i]['sentiment'] = res[i][0]['label']
     return render_template('admin.html', messages=messages)
 
 
@@ -134,17 +151,23 @@ def admin():
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME'] or request.form['password'] != app.config['PASSWORD']:
-            error = 'Invalid username and/or password'
-        else:
+        if request.form['username'] == app.config['USERNAME'] and request.form[
+                'password'] == app.config['PASSWORD']:
             session['logged_in'] = True
             return redirect(url_for('admin'))
+        elif request.form['username'] != "" and request.form['password'] != "":
+            # session['logged_in'] = True
+            session['user'] = request.form['username']
+            return redirect(url_for('home'))
+        else:
+            error = 'Enter a  username and/or password'
     return render_template('login.html', error=error)
 
 
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
+    session.pop('user', None)
     return redirect(url_for('home'))
 
 
@@ -181,6 +204,15 @@ def update_message_by_id(id):
     _update_message(request.json['message'], request.json['sender'], id)
     return jsonify({'result': True})
 
+@app.route('/api/sentiment/<string:id>', methods=['GET'])
+@app.route('/api/sentiment')
+def get_message_sentiment(id):
+    message = _get_message(id)
+    r = requests.post(url=hugging_face_url,
+                      headers=hugging_face_headers,
+                      data={'input': message[0]['message']})
+    print(json.loads(r.text))
+    return jsonify(json.loads(r.text)[0])
 
 if __name__ == '__main__':
 

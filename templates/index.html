@@ -1,44 +1,69 @@
-{% extends "main.html" %} {% block title %}Message App | Home{% endblock %} {%
-block content %}
-
-<div class="container">
-  <div class="row">
-    <div class="col-md-4">
-      <h2>Say something</h2>
-      <form id="mainform" method="post">
-        <div class="form-group">
-          <label for="username">Sender:</label>
-          <input
-            id="username"
-            class="form-control"
-            name="username"
-            placeholder="Sender"
-            required
-          />
+{% extends "main.html" %} {% block title %}FlaskTweets | Home{% endblock %} {%
+  block content %}
+  
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        {% if 'user' not in session and 'logged_in' not in session %}
+        <div>
+          <h3><a href="{{url_for('login')}}">Login</a> to tweet!</h3>
         </div>
-        <div class="form-group">
-          <label for="message">Enter your message:</label>
-          <input
-            id="message"
-            class="form-control"
-            name="message"
-            placeholder="Your message here"
-            required
-          />
+        {% elif 'logged_in' in session %}
+        <div>
+          <h3>
+            <a href="{{url_for('admin')}}">
+              Admin Panel
+            </a>
+          </h3>
         </div>
-        <input class="btn btn-default" type="submit" value="Submit" />
-      </form>
-    </div>
-    <div class="col-md-8">
-      <h2>Messages</h2>
-      {% if messages %} {% for m in messages %}
-      <p>"{{ m.message }}"</p>
-      <p>{{ m.sender }} ({{ m.dt }})</p>
-      {% endfor %} {% else %}
-      <p>No messages found.</p>
-      {% endif %}
+        {% else %}
+        <h2>Say something</h2>
+        <form id="mainform" method="post">
+          <!-- <div class="form-group">
+            <label for="username">Sender:</label>
+            <input
+              id="username"
+              class="form-control"
+              name="username"
+              placeholder="Sender"
+              required
+            />
+          </div> -->
+          <div class="form-group">
+            <input
+              type="hidden"
+              id="username"
+              name="username"
+              value="{{ session['user'] }}"
+            />
+          </div>
+          <div class="form-group">
+            <label for="message">Enter your message:</label>
+            <input
+              id="message"
+              class="form-control"
+              name="message"
+              placeholder="Your message here"
+              required
+            />
+          </div>
+          <input class="btn btn-default" type="submit" value="Submit" />
+        </form>
+        {% endif %}
+      </div>
+      <div class="col-md-8">
+        <h2>Recent Tweets</h2>
+        {% if messages %} {% for m in messages %}
+        <div class="tweet-card">
+          <p style="font-size: 2rem">"{{ m.message }}"</p>
+          <p class="small">{{ m.sender }}, {{ m.dt }}</p>
+        </div>
+        {% endfor %} {% else %}
+        <p>No tweets yet, be the first one to start the conversation :P</p>
+        {% endif %}
+      </div>
     </div>
   </div>
-</div>
-
-{% endblock %}
+  
+  {% endblock %}
+  
