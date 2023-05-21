@@ -2,6 +2,7 @@
 .idea
 *.pyc
 env
+.env
 htmlcov
 .**/
 venv/

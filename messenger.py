@@ -7,9 +7,11 @@ import requests
 from datetime import datetime
 import os
 import json
+from dotenv import load_dotenv
 
-# cassandra_node_ip = '40.87.12.12'
-cassandra_node_ip = '127.0.0.1'
+load_dotenv('.env')
+
+cassandra_node_ip = os.getenv('CASSANDRA_NODE_IP')
 cassandra_keyspace = 'test'
 hugging_face_url = 'https://api-inference.huggingface.co/models/distilbert-base-uncased-finetuned-sst-2-english'
 hugging_face_headers = {
